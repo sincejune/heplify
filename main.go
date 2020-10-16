@@ -12,7 +12,7 @@ import (
 	"github.com/sipcapture/heplify/sniffer"
 )
 
-const version = "heplify 1.62"
+const version = "heplify 1.63-rc1"
 
 func createFlags() {
 
@@ -29,8 +29,12 @@ func createFlags() {
 		dbg         string
 		std         bool
 		sys         bool
+		fnum        int
+		fsize       uint64
 	)
 
+	fnum = 7
+	fsize = 10 * 1024 * 1024
 	flag.StringVar(&ifaceConfig.Device, "i", "any", "Listen on interface")
 	flag.StringVar(&ifaceConfig.Type, "t", "pcap", "Capture types are [pcap, af_packet]")
 	flag.UintVar(&ifaceConfig.FanoutID, "fg", 0, "Fanout group ID for af_packet")
@@ -53,6 +57,8 @@ func createFlags() {
 	flag.BoolVar(&ifaceConfig.OneAtATime, "o", false, "Read packet for packet")
 	flag.StringVar(&fileRotator.Path, "p", "./", "Log filepath")
 	flag.StringVar(&fileRotator.Name, "n", "heplify.log", "Log filename")
+	flag.IntVar(&fnum, "fnum", 7, "The num of log file to keep")
+	flag.Uint64Var(&fsize, "fsize", 10*1024*1024, "The rotate size per log file")
 	flag.StringVar(&config.Cfg.Mode, "m", "SIPRTCP", "Capture modes [SIP, SIPDNS, SIPLOG, SIPRTCP]")
 	flag.BoolVar(&config.Cfg.Dedup, "dd", false, "Deduplicate packets")
 	flag.StringVar(&config.Cfg.Discard, "di", "", "Discard uninteresting packets by any string")
@@ -74,6 +80,8 @@ func createFlags() {
 	logp.ToStderr = &std
 	logging.ToSyslog = &sys
 	logp.DebugSelectorsStr = &dbg
+	fileRotator.KeepFiles = &fnum
+	fileRotator.RotateEveryBytes = &fsize
 	logging.Files = &fileRotator
 	config.Cfg.Logging = &logging
 
